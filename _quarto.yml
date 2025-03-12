@@ -1,0 +1,9 @@
+project:
+  title: "csu-ess-lab4"
+  type: website
+  output-dir: docs
+
+
+format:
+  html:
+    self-contained: true
