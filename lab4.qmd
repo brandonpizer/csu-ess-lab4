@@ -324,13 +324,74 @@ Each question requires you to carry out a statistical analysis to test some hypo
 
 **1.** Conduct a chi-square test similar to the one carried out above, but test for a relationship between forest type (`section`) and channel unit (`unittype`) for *Coastal giant salamander* abundance. *Keep all unittypes* instead of filtering any like we did for the Cutthroat trout (10 pts.)
 
+```{r}
+sally_table <- table(sally_clean$section, sally_clean$unittype) 
+  
+chisq.test(sally_table)
+
+
+
+```
+Answer: the p-value (2.2e-16) is less than 0.05 which indicates that their is a significant relationship between forest type and channel unit.
+
 <br>
 
 **2.** Test the hypothesis that there is a significant difference in species biomass between clear cut and old growth forest types for the *Coastal Giant salamander*. (10 pts.)
 
+```{r}
+
+library(dplyr)
+library(car)  # For Levene's test
+
+
+salamander_cc <- and_vertebrates |>
+  filter(species == "Coastal giant salamander" & section %in% c("CC"))
+
+salamander_OG <- and_vertebrates |>
+  filter(species == "Coastal giant salamander" & section %in% c("OG"))
+  
+
+shapiro.test(salamander_cc$weight_g)
+shapiro.test(salamander_OG$weight_g)
+
+# data is not normal distribution 
+
+wilcox.test(weight_g ~ section, data = salamander_data)
+
+
+```
+Answer: The p-value for the wilcox test was (9.57e-07) which is less than 0.05. This indicates that there is a significant difference in species biomass between clear cut and old growth forest types
+
+
 <br>
 
 **3.** Test the correlation between body length (snout to fork length) and body mass for *Cutthroat trout*. (Hint: run `?and_vertebrates` to find which length variable represents snout to fork length) (10 pts.)
+
+```{r}
+
+library(dplyr)
+
+cutthroat_sample <- and_vertebrates %>%
+  filter(species == "Cutthroat trout") %>%
+  slice_sample(n = 5000)
+
+
+shapiro.test(cutthroat_sample$length_1_mm)
+shapiro.test(cutthroat_sample$weight_g)
+
+cor.test(cutthroat_sample$length_1_mm, cutthroat_sample$weight_g, method = "spearman")
+
+ggplot(cutthroat_sample, aes(x = length_1_mm, y = weight_g)) +
+  geom_point(alpha = 0.5, color = "blue") +  # Scatter points with transparency
+  geom_smooth(method = "lm", color = "red", se = TRUE) +  # Linear regression trend line
+  labs(title = "Correlation Between Body Length and Mass in Cutthroat Trout",
+       x = "Body Length (mm)",
+       y = "Body Mass (g)") +
+  theme_minimal()
+
+
+```
+Answer: Since the p-value (2.2e-16) is less than 0.05, the data indicates that there is a significant correlation between body mass and body length
 
 <br> <br>
 
@@ -397,7 +458,7 @@ pie_crab |>
   theme(legend.postition = "none")
 ```
 
-In doing this, it ;ooks like there are differences among sites, tempting us to test for statistical significance with the ANOVA test.
+In doing this, it looks like there are differences among sites, tempting us to test for statistical significance with the ANOVA test.
 
 ## Assumptions
 
@@ -555,9 +616,85 @@ In your assignment, you will perform a multiple linear regression using variable
 
 1.  **After** completing the ANOVA test (and post-hoc Tukey's HSD) above to test for significant differences in crab size among 3 different sites: **1)** Create a boxplot showing the carapace width for each site where sites are *ordered by latitude* and **2)** report the findings of the statistical test as you would in a scientific paper. *Include both the code to create the boxplot and an image of the figure.* (10 pts.)
 
+```{r}
+
+library(car)
+
+anova_model <- aov(size ~ site, data = pie_crab)
+
+shapiro.test(residuals(anova_model))  
+leveneTest(size ~ site, data = pie_crab)  
+
+summary(anova_model)
+
+tukey_result <- TukeyHSD(anova_model)
+
+site_order <- pie_crab %>%
+  group_by(site) %>%
+  summarize(mean_latitude = mean(latitude, na.rm = TRUE)) %>%
+  arrange(mean_latitude) %>%
+  pull(site)
+
+ggplot(pie_crab, aes(x = factor(site, levels = site_order), y = size)) +
+  geom_boxplot(fill = "lightblue", color = "black") +
+  labs(title = "Carapace Width by Site (Ordered by Latitude)",
+       x = "Site",
+       y = "Carapace Width (mm)") +
+  theme_minimal()
+
+
+
+```
+Answer: 
+
+A one-way ANOVA was conducted to compare differences in carapace width across three different sites. The results indicated a significant effect of site on carapace width (F(df, df) = 9.22, p = 1.15e-15), suggesting that crab size differs among locations.
+
+
 2.  Conduct a simple linear regression for the effect of `water_temp_sd` (a measure reflecting annual variation in water temperature) on carapace width. Report your findings (include code *and* a sentence reporting the results) AND create a plot with a line of best fit. *Include both the code to create the plot and an image of the figure*. (10 pts).
 
+```{r}
+
+lm(size ~ water_temp_sd, data = pie_crab) |>
+  summary()
+
+
+```
+Answer: A simple linear regression was conducted to examine the effect of annual variation in water temperature (water_temp_sd) on carapace width. The model was not significant (F(1, 390) = 0.3999, p = 0.5275), explaining R² = 0.001024 of the variance in carapace width. The regression coefficient for water_temp_sd was B = 0.09938 (p = 0.528), indicating that for each unit increase in temperature variation, carapace width increased/decreased by about 0.1 mm.
+
+```{r}
+
+ggplot(pie_crab, aes(x = water_temp_sd, y = size)) +
+  geom_point(color = "blue", alpha = 0.5) + 
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  labs(title = "Effect of Water Temperature Variation on Carapace Width",
+       x = "Annual Variation in Water Temperature (°C)",
+       y = "Carapace Width (mm)") +
+  theme_minimal()
+
+
+
+```
+
+
 3.  Conduct a multiple linear regression for the effects of `latitude`, `air_temp_sd`, and `water_temp_sd` on carapace width. **First** check for correlations among the three predictor variables (and report the correlation table) and **second** report your findings from the multiple linear regression (code *and* a sentence reporting the results). (10 pts.)
+
+```{r}
+
+pie_crab |>
+  select(latitude, air_temp_sd, water_temp_sd) |>
+  cor()
+
+```
+Answer: The correlation matrix revealed that latitude and air_temp_sd were correlated (r = 0.79), while latitude and water_temp_sd showed almost no correlation (r = 0.04). The relationship between air_temp_sd and water_temp_sd was weakly correlated (r = 0.41), suggesting low multicollinearity concerns.
+
+```{r}
+
+lm(size ~ latitude + air_temp_sd + water_temp_sd, data = pie_crab) |>
+  summary()
+
+
+```
+Answer: A multiple linear regression was conducted to examine the effects of latitude, air temperature variation (air_temp_sd), and water temperature variation (water_temp_sd) on crab size. The overall model was significant (F(3, 388) = 70.13, p = 2.2e-16), explaining R² = 0.35 of the variance in size.
 
 ## Acknowledgements
 
