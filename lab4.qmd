@@ -3,8 +3,9 @@ title: 'Lab 4: LTER Network Data'
 format:
    html:
     code-fold: true
+    self-contained: true
     toc: true
-subtitle: 'Introduction to Statistics in R'
+subtitle: 'Introduction to Statistics in R | Brandon Pizer'
 ---
 
 ```{r, include = F}
@@ -21,7 +22,7 @@ library(tidyverse)
 ```{r}
 #| echo: false
 #| out.width: "100%"
-knitr::include_graphics('images/LTER-Network-Logo-2017.jpg')
+
 ```
 
 This lab will walk us through some basic statistical tests in R, including chi-square, t-tests, and correlation tests. We will use data from the Long-Term Ecological Research (LTER) Network, which is a collaborative effort involving more than 2000 scientists and students investigating ecological processes over long temporal and broad spatial scales. The basics of this lab were adopted from a previous version of this course. This qmd for this lab can be downloaded [here](). Please download it into the repo of your choice and open it in RStudio to work through this lab:
@@ -332,7 +333,8 @@ chisq.test(sally_table)
 
 
 ```
-Answer: the p-value (2.2e-16) is less than 0.05 which indicates that their is a significant relationship between forest type and channel unit.
+**Answer** 
+the p-value (2.2e-16) is less than 0.05 which indicates that their is a significant relationship between forest type and channel unit.
 
 <br>
 
@@ -341,8 +343,7 @@ Answer: the p-value (2.2e-16) is less than 0.05 which indicates that their is a 
 ```{r}
 
 library(dplyr)
-library(car)  # For Levene's test
-
+library(car)  
 
 salamander_cc <- and_vertebrates |>
   filter(species == "Coastal giant salamander" & section %in% c("CC"))
@@ -356,11 +357,12 @@ shapiro.test(salamander_OG$weight_g)
 
 # data is not normal distribution 
 
-wilcox.test(weight_g ~ section, data = salamander_data)
+wilcox.test(weight_g ~ section, data = sally_clean)
 
 
 ```
-Answer: The p-value for the wilcox test was (9.57e-07) which is less than 0.05. This indicates that there is a significant difference in species biomass between clear cut and old growth forest types
+**Answer**
+The p-value for the wilcox test was (9.57e-07) which is less than 0.05. This indicates that there is a significant difference in species biomass between clear cut and old growth forest types
 
 
 <br>
@@ -391,7 +393,8 @@ ggplot(cutthroat_sample, aes(x = length_1_mm, y = weight_g)) +
 
 
 ```
-Answer: Since the p-value (2.2e-16) is less than 0.05, the data indicates that there is a significant correlation between body mass and body length
+**Answer**
+Since the p-value (2.2e-16) is less than 0.05, the data indicates that there is a significant correlation between body mass and body length
 
 <br> <br>
 
@@ -645,8 +648,7 @@ ggplot(pie_crab, aes(x = factor(site, levels = site_order), y = size)) +
 
 
 ```
-Answer: 
-
+**Answer** 
 A one-way ANOVA was conducted to compare differences in carapace width across three different sites. The results indicated a significant effect of site on carapace width (F(df, df) = 9.22, p = 1.15e-15), suggesting that crab size differs among locations.
 
 
@@ -659,7 +661,8 @@ lm(size ~ water_temp_sd, data = pie_crab) |>
 
 
 ```
-Answer: A simple linear regression was conducted to examine the effect of annual variation in water temperature (water_temp_sd) on carapace width. The model was not significant (F(1, 390) = 0.3999, p = 0.5275), explaining R² = 0.001024 of the variance in carapace width. The regression coefficient for water_temp_sd was B = 0.09938 (p = 0.528), indicating that for each unit increase in temperature variation, carapace width increased/decreased by about 0.1 mm.
+**Answer**
+A simple linear regression was conducted to examine the effect of annual variation in water temperature (water_temp_sd) on carapace width. The model was not significant (F(1, 390) = 0.3999, p = 0.5275), explaining R² = 0.001024 of the variance in carapace width. The regression coefficient for water_temp_sd was B = 0.09938 (p = 0.528), indicating that for each unit increase in temperature variation, carapace width increased/decreased by about 0.1 mm.
 
 ```{r}
 
@@ -685,7 +688,8 @@ pie_crab |>
   cor()
 
 ```
-Answer: The correlation matrix revealed that latitude and air_temp_sd were correlated (r = 0.79), while latitude and water_temp_sd showed almost no correlation (r = 0.04). The relationship between air_temp_sd and water_temp_sd was weakly correlated (r = 0.41), suggesting low multicollinearity concerns.
+**Answer**
+The correlation matrix revealed that latitude and air_temp_sd were correlated (r = 0.79), while latitude and water_temp_sd showed almost no correlation (r = 0.04). The relationship between air_temp_sd and water_temp_sd was weakly correlated (r = 0.41), suggesting low multicollinearity concerns.
 
 ```{r}
 
@@ -694,7 +698,8 @@ lm(size ~ latitude + air_temp_sd + water_temp_sd, data = pie_crab) |>
 
 
 ```
-Answer: A multiple linear regression was conducted to examine the effects of latitude, air temperature variation (air_temp_sd), and water temperature variation (water_temp_sd) on crab size. The overall model was significant (F(3, 388) = 70.13, p = 2.2e-16), explaining R² = 0.35 of the variance in size.
+**Answer**
+A multiple linear regression was conducted to examine the effects of latitude, air temperature variation (air_temp_sd), and water temperature variation (water_temp_sd) on crab size. The overall model was significant (F(3, 388) = 70.13, p = 2.2e-16), explaining R² = 0.35 of the variance in size.
 
 ## Acknowledgements
 
